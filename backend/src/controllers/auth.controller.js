@@ -370,7 +370,7 @@ export const forgotPassword = async (req, res) => {
     // Reset link
     const data = {
       name : user.fullName,
-      resetLink : `http://localhost:5173/reset-password?token=${resetToken}`
+      resetLink : `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`
     }
 
     // Email options

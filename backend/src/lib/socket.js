@@ -193,17 +193,60 @@ io.on("connection", async (socket) => {
   // Initiate a call to another user
   socket.on("callUser", ({ userToCall, from, signal, callType }) => {
     try {
+      if (!userToCall || !from || !signal || !callType) {
+        console.error("Invalid call data received:", { userToCall, from, hasSignal: !!signal, callType });
+        socket.emit("callFailed", { 
+          reason: "invalid_data",
+          message: "Invalid call data" 
+        });
+        return;
+      }
+
+      // Check if caller is calling themselves on another device/tab
+      const callerId = socket.handshake.query.userId;
+      if (callerId === userToCall) {
+        console.log(`[CALL DEBUG] User ${callerId} is trying to call themselves. Blocking call.`);
+        socket.emit("callFailed", { 
+          reason: "self_call",
+          message: "Cannot call yourself on another session" 
+        });
+        return;
+      }
+
+      console.log(`[CALL DEBUG] Call initiated from ${from.userId} to ${userToCall}, type: ${callType}`);
+      console.log(`[CALL DEBUG] User socket map entries:`, Object.keys(userSocketMap).length);
+      console.log(`[CALL DEBUG] Socket ID for ${userToCall}:`, userSocketMap[userToCall]);
+      
+      // Get the active socket for target user
       const userSocketId = userSocketMap[userToCall];
       
       if (userSocketId) {
+        // Check if the socket is actually connected
+        const targetSocket = io.sockets.sockets.get(userSocketId);
+        if (!targetSocket) {
+          console.log(`[CALL DEBUG] Target socket exists in map but not in active sockets`);
+          
+          // Clean up stale entry
+          delete userSocketMap[userToCall];
+          
+          socket.emit("callFailed", { 
+            reason: "user_unavailable",
+            message: "User is unavailable" 
+          });
+          return;
+        }
+        
+        console.log(`[CALL DEBUG] Emitting incomingCall event to ${userSocketId}`);
         io.to(userSocketId).emit("incomingCall", { 
           from, 
           signal,
           callType 
         });
-        console.log(`Call initiated from ${from.userId} to ${userToCall}, type: ${callType}`);
+        
+        console.log(`[CALL DEBUG] Call notification sent to ${userToCall}`);
       } else {
         // If user is not online, inform the caller
+        console.log(`[CALL DEBUG] User ${userToCall} is not online/connected`);
         socket.emit("callFailed", { 
           reason: "user_offline",
           message: "User is offline" 
@@ -219,13 +262,65 @@ io.on("connection", async (socket) => {
   });
 
   // Answer an incoming call
-  socket.on("answerCall", ({ to, signal }) => {
+  socket.on("answerCall", ({ to, signal, isFallback }) => {
     try {
+      if (!to || !signal) {
+        console.error("Invalid answer call data:", { to, hasSignal: !!signal });
+        return;
+      }
+
+      console.log(`[CALL DEBUG] Call being answered by ${socket.handshake.query.userId} to ${to}, signal type: ${signal.type || 'unknown'}, is fallback: ${!!isFallback}`);
+      
+      // Add debug log with SDP info (truncated)
+      if (signal.sdp) {
+        const sdpPreview = signal.sdp.substring(0, 100) + '...';
+        console.log(`[CALL DEBUG] SDP preview: ${sdpPreview}`);
+      }
+      
       const userSocketId = userSocketMap[to];
       
       if (userSocketId) {
-        io.to(userSocketId).emit("callAccepted", { signal });
-        console.log(`Call answered by ${socket.handshake.query.userId} to ${to}`);
+        // Check if the socket is actually connected
+        const targetSocket = io.sockets.sockets.get(userSocketId);
+        if (!targetSocket) {
+          console.log(`[CALL DEBUG] Target socket exists in map but not in active sockets`);
+          socket.emit("callFailed", { 
+            reason: "user_unavailable",
+            message: "User is unavailable" 
+          });
+          return;
+        }
+        
+        // Ensure the signal type is appropriate for the scenario
+        if (!signal.type || signal.type === 'answer') {
+          console.log(`[CALL DEBUG] Emitting callAccepted event to ${userSocketId}`);
+          io.to(userSocketId).emit("callAccepted", { 
+            signal,
+            from: socket.handshake.query.userId,
+            isFallback
+          });
+        } else {
+          console.log(`[CALL DEBUG] Received unexpected signal type: ${signal.type} during answerCall`);
+          
+          // Handle the case where we get an offer instead of an answer (signaling conflict)
+          if (signal.type === 'offer' && !isFallback) {
+            console.log(`[CALL DEBUG] Signaling conflict detected - handling as special case`);
+            
+            // Send a special error to help client resolve the conflict
+            io.to(userSocketId).emit("signalingConflict", {
+              from: socket.handshake.query.userId,
+              signal: signal,
+              timestamp: Date.now()
+            });
+            
+            socket.emit("signalingConflict", {
+              from: to,
+              timestamp: Date.now()
+            });
+          }
+        }
+      } else {
+        console.log(`[CALL DEBUG] User ${to} is no longer connected, cannot answer call`);
       }
     } catch (error) {
       console.error("Error in answerCall handler:", error);
@@ -304,6 +399,45 @@ io.on("connection", async (socket) => {
       userId: socket.handshake.query.userId,
       groupId 
     });
+  });
+
+  // WebRTC ICE Candidate debugging
+  socket.on("iceCandidate", ({ to, candidate, type }) => {
+    try {
+      console.log(`[ICE DEBUG] ${type} candidate from ${socket.handshake.query.userId}:`, candidate.candidate);
+      
+      const userSocketId = userSocketMap[to];
+      if (userSocketId) {
+        io.to(userSocketId).emit("iceCandidate", {
+          from: socket.handshake.query.userId,
+          candidate,
+          type
+        });
+      }
+    } catch (error) {
+      console.error("Error in iceCandidate handler:", error);
+    }
+  });
+
+  // Log WebRTC connection state changes
+  socket.on("webrtcState", ({ state, details }) => {
+    console.log(`[WEBRTC DEBUG] User ${socket.handshake.query.userId} connection state: ${state}`, details);
+  });
+
+  // Call diagnostic handler
+  socket.on("callDiagnostic", (data) => {
+    console.log(`[CALL DIAGNOSTIC] From user ${socket.handshake.query.userId}:`, data);
+    
+    // Send back diagnostic info if requested
+    if (data.requestInfo) {
+      socket.emit("callDiagnosticInfo", {
+        timestamp: new Date().toISOString(),
+        userSocketMap: Object.keys(userSocketMap).length,
+        socketId: socket.id,
+        isSocketInMap: !!Object.entries(userSocketMap).find(([userId, socketId]) => socketId === socket.id),
+        activeSocketsCount: io.sockets.sockets.size
+      });
+    }
   });
 
   // io.emit() is used to send events to all the connected clients
