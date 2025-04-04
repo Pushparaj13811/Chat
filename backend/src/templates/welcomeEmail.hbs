@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Chatty</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f0f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 550px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .logo-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: rgba(87, 13, 248, 0.1);
+            margin-bottom: 10px;
+        }
+        .logo {
+            width: 30px;
+            height: 30px;
+            fill: #570df8; /* Primary color from your app */
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .subheader {
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .message {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .highlight {
+            background-color: rgba(87, 13, 248, 0.08);
+            border-left: 4px solid #570df8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 25px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            color: white;
+            background: #570df8; /* Primary color from your app */
+            border-radius: 6px;
+            transition: 0.3s;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #4406cb;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .features {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .feature {
+            flex-basis: 30%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #570df8;
+        }
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .footer {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .social-links {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #570df8;
+            text-decoration: none;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+                margin: 20px auto;
+                padding: 20px;
+            }
+            .feature {
+                flex-basis: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo-container">
+            <div class="logo-circle">
+                <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </div>
+            <div class="header">Welcome to Chatty!</div>
+        </div>
+        
+        <p class="subheader">Hi {{name}}, we're excited to have you join us!</p>
+        
+        <div class="highlight">
+            <p class="message">Your account has been successfully created. Get ready to enjoy seamless communication with friends and colleagues.</p>
+        </div>
+        
+        <p class="message">Chatty gives you a fast, reliable, and secure way to stay connected with people who matter most to you. Start exploring the app right away!</p>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <div class="feature-title">Messaging</div>
+                <div>Real-time chat with anyone</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Security</div>
+                <div>Your conversations are private</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Fast</div>
+                <div>Instant message delivery</div>
+            </div>
+        </div>
+        
+        <p class="message">If you have any questions or need assistance, don't hesitate to reach out to our support team.</p>
+        
+        <div class="footer">
+            <p>© 2023 Chatty. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Twitter</a>
+                <a href="#" class="social-link">Facebook</a>
+                <a href="#" class="social-link">Instagram</a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

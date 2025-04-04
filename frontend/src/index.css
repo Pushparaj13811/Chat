@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Call ripple effects */
+.ripple-incoming {
+  border-radius: 50%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  animation: ripple-incoming 1.5s linear infinite;
+}
+
+.ripple-incoming::before,
+.ripple-incoming::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--p));
+  animation: ripple-incoming-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.ripple-incoming::after {
+  animation-delay: 0.75s;
+}
+
+@keyframes ripple-incoming-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  70%, 100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.ripple-outgoing {
+  border-radius: 50%;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.ripple-outgoing::before,
+.ripple-outgoing::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--p));
+  animation: ripple-outgoing-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.ripple-outgoing::after {
+  animation-delay: 1s;
+}
+
+@keyframes ripple-outgoing-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  70%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
